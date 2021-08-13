@@ -1,0 +1,359 @@
+<html>
+<head>
+    <title>SWITCHBOARD COORDINATOR</title>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="upload.css">
+    <link rel="stylesheet" type="text/css" href="global.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="View">
+        <div class="split left">
+           <ul class="list">
+        <li>SWITCHBOARD COORDINATOR LOCATOR</li>
+        <li>Enter number of verticals in Switchboard:</li>
+        <li><input type="text" name="vert" id="vert" placeholder="no of verticals "></li>
+        <li>Enter whether switchboard is interleaved or non interleaved: </li>
+        <label class="container">Interleaved:
+            <input type="checkbox"  id = "inter" style="width:50px">
+            <span class="checkmark"></span>
+        </label>
+        
+        <li> <input type="button" name="Submit" value="Submit" onClick="addMoreRows(); return false;"></li>
+        <br>
+        <br>
+        <br>
+        <p id = "output"> </p> 
+    </ul>
+        </div>
+          
+        <div class="split right">
+                <table id="tbl_id" style="text-align:center" align="center" valign:"top">
+                    <thead>
+                        <tr>
+                            <th>V No</th>
+                            <th>Type</th>
+                            <th>Width(mm)</th>
+                            <th>HBB Joints</th>
+                            <th>Fishplate Joint</th>
+                            <th>No of Feeders</th>
+                            <th>ACB Terminals</th>
+                            <th>Customer Terminals</th>
+                            <th>Model</th>
+
+                            
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th><input type="checkbox"  id="h" onchange="checkall(this.id)"></th>
+                            <th></th>
+                            <th></th>
+                            <th><input type="checkbox"  id="a" onchange="checkall(this.id)"></th>
+                            <th><input type="checkbox"  id="c" onchange="checkall(this.id)"></th>
+                            <th></th>
+
+                            
+                        </tr>
+                        
+                        
+                    </thead>
+                    <tbody id="tbody">
+                        
+                    </tbody>
+                </table>
+                <input type="button" name="Sub" value="Submit" onClick="coordinate();">
+                <br>
+                <table id="output_id" style="text-align:center; border: 1px solid black;" align="center" valign:"top">
+                    <thead>
+                        <tr>
+                            <th>Coordinator No</th>
+                            <th>Placed in Vertical No</th>
+                            <th>Vertical Range</th>
+                            <th>End Devices</th>
+                            
+                        </tr>
+                        
+                        
+         
+                    </thead>
+                    <tbody id="tbody_op">
+                        
+                    </tbody>
+                </table>
+                
+    </div>
+        
+     <script type="text/javascript">
+          
+
+      function addMoreRows() {
+
+        var tbody = document.getElementById('tbody');
+        tbody.innerHTML = "";
+        var rowsAdded = parseInt(document.getElementById('vert').value);
+        if(rowsAdded>40){
+            alert("Maxinum number of verticals has exceeded!")
+        }
+        else{
+
+        for(var x=1; x<rowsAdded+1; x++) {
+          var newRow = tbody.insertRow();
+
+          var newCell = newRow.insertCell();
+          newCell.innerHTML="<tr><td><b>#"+x+"</b> </td></tr>";
+          newCell = newRow.insertCell();
+          newCell.innerHTML=`<tr><td><select name="type" id="t` + x + `" autofocus onchange = "disable(this.id)">
+
+
+                        <option value="ACB Feeder">ACB Feeder</option>
+                        <option value="MCC Single Front">MCC Single Front</option>
+                        <option value="MCC Double Front">MCC Double Front</option>
+                        <option value="PCC Auxillary Panel">PCC Auxillary Panel</option>
+                        <option value="Bus Coupler Auxillary">Bus Coupler Auxillary</option>
+                        </select>
+       </td></tr>`;
+
+          newCell = newRow.insertCell();
+          newCell.innerHTML=`<tr><td><select name="width" id="w` + x + `" autofocus style="width:70px">
+
+                        <option value="0">0mm</option>
+                        <option value="300">300mm</option>
+                        <option value="440">440mm</option>
+                        <option value="600">600mm</option>
+                        <option value="700">700mm</option>
+                        <option value="800">800mm</option>
+                        <option value="900">900mm</option>
+                        <option value="1000">1000mm</option>
+                        <option value="1200">1200mm</option>
+                        </select>
+       </td></tr>`;
+
+
+          newCell = newRow.insertCell();
+          newCell.innerHTML='<tr><td><input type="checkbox"  id="h' + x + '"></td></tr>';  
+          newCell = newRow.insertCell();
+          newCell.innerHTML='<tr><td><input type="checkbox"  id="f' + x + '"></td></tr>';
+          newCell = newRow.insertCell();
+          newCell.innerHTML='<tr><td><input type="number" name="Feeder" id="m' + x + '" min = "1" value= "1" ></td></tr>';
+          newCell = newRow.insertCell();
+          newCell.innerHTML='<tr><td><input type="checkbox"  id="a' + x + '"></td></tr>';
+          newCell = newRow.insertCell();
+          newCell.innerHTML='<tr><td><input type="checkbox"  id="c' + x + '"></td></tr>';
+          newCell = newRow.insertCell();
+          newCell.innerHTML=`<tr><td><select name="model" id="u` + x + `" autofocus style="width:50px">
+
+                        <option value="UW1">UW1</option>
+                        <option value="UW2">UW2</option>
+                        <option value="UW3">UW3</option>
+                        </select></td></tr>`;}}     
+      }
+      function coordinate() {
+        var max_end = 100;
+        var max_range = 1800;
+        var max_vert = 40;
+        var ecount = 0;
+        var data = [];
+        var vert = document.getElementById("tbody").childElementCount;
+        var type1 = document.getElementById("inter").checked;
+        if (vert <= max_vert){
+            for (let i = 1; i < vert+1; i++){
+        var type = document.getElementById("t" + i).value;
+        var width = document.getElementById("w" + i).value;
+        var hbb = document.getElementById("h" + i).checked;
+        var fish = document.getElementById("f" + i).checked; 
+        var feed = document.getElementById("m" + i).value; 
+        var acb = document.getElementById("a" + i).checked;
+        var cust = document.getElementById("c" + i).checked;
+        var model = document.getElementById("u" + i).value;
+        var count = 0;
+        if(model=="UW3"){
+            feed = feed*2;}
+        if(type=="MCC Single Front"){
+            if(hbb){
+                count += 3; }
+            if(fish){
+                count += 3;}
+            if(cust){
+                count += 3*feed; }}
+        else if(type=="MCC Double Front"){
+            if(hbb){
+                count += 3*2; }
+            if(fish){
+                count += 3;}
+            if(cust){
+                count += 3*feed; }}
+        else if(type=="Bus Coupler Auxillary"){
+            if(hbb){
+                count += 3; }
+            if(fish){
+                count += 3;}}
+        else if(type=="PCC Auxillary Panel"){
+            if(fish){
+                count += 3;}}
+        else{
+            if(hbb){
+                count += 3; }
+            if(fish){
+                count += 3;}
+            if(cust){
+                count += 3*feed;}
+            if(acb){
+                count +=6*feed;
+            }}
+            
+        var temp = [Number(width), type1, hbb, fish, acb, cust];
+        if(type1){
+            if(hbb){
+                count +=3;
+            }
+            if(fish){
+                count +=3;
+            }
+        }
+        ecount+=count;
+        temp.push(count);
+        data.push(temp);
+    }
+    var end = 0;
+    var curr_width = 0;
+    var n = 1;
+    var blocks = [];
+    var edev = [];
+    var arr = [];
+    var k = 0;
+    console.log(data);
+      for (var x = 0; x<data.length; x++){
+        i = data[x];
+        k = k + 1;        
+        var temps = end + i[i.length - 1];
+        var tempw = curr_width + i[0];
+        if (temps > max_end || tempw > max_range * 2){
+            blocks.push(arr);
+            edev.push(end);
+            arr = [k];
+            n = n + Math.max(Math.floor(tempw/(max_range*2)), Math.floor(temps/(max_end)));
+            end = i[i.length - 1];
+            curr_width = i[0]%(max_range*2);}
+        else{ 
+            arr.push(k);
+            end = temps;
+            curr_width = tempw;}}
+    if (arr.length != 0){
+        blocks.push(arr);
+        edev.push(end);
+    }
+    k = 1;
+   
+    console.log("Minimum required coordinators are:" + n);
+    console.log(blocks);
+    var tbody = document.getElementById("tbody_op");
+  for(var x=1; x<n+1; x++) {
+     var i = blocks[x-1];
+          var newRow = tbody.insertRow();
+
+          var newCell = newRow.insertCell();
+          newCell.innerHTML="<tr><td>#"+x+"</td></tr>";
+          newCell = newRow.insertCell();
+          newCell.innerHTML="<tr><td>" + i[Math.floor(i.length/2)] + "</td></tr>";
+
+          newCell = newRow.insertCell();
+          if(i.length>1){
+            newCell.innerHTML="<tr><td>" + i[0] + "-" + i[i.length-1] + "</td></tr>";
+            
+        }
+        else{
+            newCell.innerHTML="<tr><td>" + i[0] +  "</td></tr>";
+            
+        }
+
+          newCell = newRow.insertCell();
+          newCell.innerHTML="<tr><td>" + edev[x-1] + "</td></tr>";
+ 
+          }
+            var T = document.getElementById("output_id");
+            T.style.visibility = "visible";
+           }
+
+
+    }
+    function disable(id){
+
+        var i = id.substring(1);
+        var type = document.getElementById("t" + i).value;
+        var acb = document.getElementById("a" + i);
+            acb.disabled = false;
+            var acb = document.getElementById("h" + i);
+            acb.disabled = false;
+            var acb = document.getElementById("c" + i);
+            acb.disabled = false;
+            var model = document.getElementById("u" + i);
+            model.disabled = false;
+
+        if(type=="MCC Single Front"){
+            var acb = document.getElementById("a" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var model = document.getElementById("u" + i);
+            model.select = false;
+            model.disabled = true;
+
+
+        }
+        else if(type=="MCC Double Front"){
+            var acb = document.getElementById("a" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var model = document.getElementById("u" + i);
+            model.select = false;
+            model.disabled = true;
+
+             }
+        else if(type=="Bus Coupler Auxillary"){
+            var acb = document.getElementById("a" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var acb = document.getElementById("c" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var model = document.getElementById("u" + i);
+            model.select = false;
+            model.disabled = true;
+
+            }
+        else if(type=="PCC Auxillary Panel"){
+            var acb = document.getElementById("a" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var acb = document.getElementById("h" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var acb = document.getElementById("c" + i);
+            acb.checked = false;
+            acb.disabled = true;
+            var model = document.getElementById("u" + i);
+            model.select = false;
+            model.disabled = true;
+
+
+            }} 
+        function checkall(id){
+             var vert = document.getElementById("tbody").childElementCount;
+             var e = document.getElementById(id).checked;
+             for (let i = 1; i < vert+1; i++){
+                var ele = document.getElementById(id+i);
+                if(!ele.disabled){
+                    ele.checked = e;
+
+                }
+
+             }
+
+        }        
+    </script>
+</body>
+</html>
